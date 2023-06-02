@@ -1,3 +1,4 @@
+import logging
 import shutil
 
 from app.common.dlcs import DLCS
@@ -9,6 +10,7 @@ from app.engine.s3 import S3Client
 from app.engine.serializers import DLCSBatchSerializer
 from django_q.tasks import async_task
 
+logger = logging.Logger(__name__)
 http_origin = HttpOrigin()
 pdf_rasterizer = PdfRasterizer()
 s3_client = S3Client()
@@ -16,7 +18,10 @@ dlcs = DLCS()
 
 
 def cleanup_scratch(folder_path):
-    shutil.rmtree(folder_path)
+    try:
+        shutil.rmtree(folder_path)
+    except FileNotFoundError:
+        logger.info(f"cleanup failed for {folder_path}, not found")
 
 
 def process_member(args):
