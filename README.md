@@ -27,7 +27,7 @@ The project ships with a [`docker-compose.yml`](docker-compose.yml) that can be 
 docker-compose up
 ```
 
-Note that for the Composite Handler to be able to interact with the target S3 bucket, the Docker Compose assumes that the `AWS_PROFILE` environment variable has been set and a valid AWS session is available.
+> Note that for the Composite Handler to be able to interact with the target S3 bucket, the Docker Compose assumes that the `AWS_PROFILE` environment variable has been set and a valid AWS session is available.
 
 This will create a PostgreSQL instance, bootstrap it with the required tables, deploy a single instance of the API, and three instances of the engine. Requests can then be targetted at `localhost:8000`.
 
@@ -47,18 +47,26 @@ python manage.py createcachetable
 
 Once the API is running, an administrator interface can be accessed via the browser at `http://localhost:8000/admin`. To create an administrator login, run the following command:
 
-```
+```bash
 python manage.py createsuperuser
 ```
 
 The administrator user can be used to browse the database and manage the queue (including deleting tasks and resubmitting failed tasks into the queue).
+
+### Entrypoints
+
+There are 3 possible entrypoints to make the above easier:
+
+* `entrypoint.sh` - this will wait for Postgres to be available and run `manage.py migrate` and `manage.py createcachetable` if `MIGRATE=True`. It will run `manage.py createsuperuser` is `INIT_SUPERUSER=True` (also needs `DJANGO_SUPERUSER_*` envvars)
+* `entrypoint-api.sh` - this runs above then `python manage.py runserver 0.0.0.0:8000`
+* `entrypoint-worker.sh` - this runs above then `python manage.py qcluster`
 
 ## Configuration
 
 The following list of environment variables are supported:
 
 | Environment Variable          | Default Value                  | Component(s) | Description                                                                                                                                                                                                                                                                  |
-|-------------------------------|--------------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | ------------------------------ | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DJANGO_DEBUG`                | `True`                         | API, Engine  | Whether Django should run in debug. Useful for development purposes but should be set to `False` in production.                                                                                                                                                              |
 | `DJANGO_SECRET_KEY`           | None                           | API, Engine  | The secret key used by Django when generating sensitive tokens. This should a randomly generated 50 character string.                                                                                                                                                        |
 | `SCRATCH_DIRECTORY`           | `/tmp/scratch`                 | Engine       | A locally accessible filesystem path where work-in-progress files are written during rasterization.                                                                                                                                                                          |
@@ -78,6 +86,8 @@ The following list of environment variables are supported:
 | `ENGINE_WORKER_TIMEOUT`       | `3600`                         | Engine       | The number of seconds that a task (i.e. the processing of a single PDF) can run for before being terminated and treated as a failure. This value is useful to purging "stuck" tasks which haven't technically failed but are occupying a worker.                             |
 | `ENGINE_WORKER_RETRY`         | `4500`                         | Engine       | The number of seconds since a task was presented for processing before a worker will re-run, regardless of whether it is still running or failed. As such, this value must be higher than `ENGINE_WORKER_TIMEOUT`.                                                           |
 | `ENGINE_WORKER_MAX_ATTEMPTS`  | `0`                            | Engine       | The number of processing attempts a single task will undergo before it is abandoned. Setting this value to `0` will cause a task to be retried forever.                                                                                                                      |
+| `MIGRATE`                     | None                           | API, Engine  | If "True" will run migrations + createcachetable on startup if entrypoint used.                                                                                                                                                                                              |
+| `INIT_SUPERUSER`              | None                           | API, Engine  | If "True" will attempt to create superuser. Needs standard Django envvars to be set (e.g. `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`) if entrypoint used.                                                                            |
 
 Note that in order to access the S3 bucket, the Composite Handler assumes that valid AWS credentials are available in the environment - this can be in the former of [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html), or in the form of ambient credentials.
 

@@ -6,23 +6,18 @@ services:
     command: chown -R 1000:1000 /data/scratch
     volumes:
       - ./scratch:/data/scratch
-  migrate:
-    build: .
-    command: bash -c "python manage.py migrate && python manage.py createcachetable"
-    env_file: .env
-    depends_on:
-      - postgres
   api:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: /srv/dlcs/entrypoint-api.sh
     env_file: .env
+    environment:
+      - MIGRATE=True
+      - INIT_SUPERUSER=True
     ports:
       - "8000:8000"
-    depends_on:
-      - migrate
   engine:
     build: .
-    command: python manage.py qcluster
+    command: /srv/dlcs/entrypoint-worker.sh
     deploy:
       replicas: 3
     env_file: .env
@@ -32,7 +27,6 @@ services:
       - ./scratch:/data/scratch
       - $HOME/.aws:/srv/dlcs/.aws:ro
     depends_on:
-      - migrate
       - init
   postgres:
     image: postgres:13.3
