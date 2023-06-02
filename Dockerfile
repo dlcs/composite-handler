@@ -18,6 +18,9 @@ RUN pip install --no-warn-script-location --requirement /srv/dlcs/requirements.t
 
 COPY --chown=dlcs:dlcs ./src /srv/dlcs
 COPY --chown=dlcs:dlcs ./entrypoints /srv/dlcs
+RUN chmod +x /srv/dlcs/entrypoint.sh
+RUN chmod +x /srv/dlcs/entrypoint-api.sh
+RUN chmod +x /srv/dlcs/entrypoint-worker.sh
 
 USER dlcs
 WORKDIR /srv/dlcs
