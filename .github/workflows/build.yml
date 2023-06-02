@@ -29,7 +29,7 @@ jobs:
       - id: docker-meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/dlcs/composite-handler
+          images: ghcr.io/dlcs/compositehandler
           tags: |
             type=ref,event=branch
             type=ref,event=pr
