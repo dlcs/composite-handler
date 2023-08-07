@@ -1,7 +1,7 @@
 asgiref==3.7.2
 attrs==23.1.0
 boto3==1.26.144
-Django==3.2.19
+Django==4.2.4
 django-environ==0.10.0
 django-health-check==3.16.4
 django-q==1.3.9
