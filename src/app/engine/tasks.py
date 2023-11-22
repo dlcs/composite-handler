@@ -57,7 +57,10 @@ def __rasterize_composite(member, pdf_path):
 
 def __push_images_to_dlcs(member, images):
     __update_status(member, "PUSHING_TO_DLCS", image_count=len(images))
-    return s3_client.put_images(member.id, images)
+    composite_id = member.json_data.get("compositeId")
+    customer = member.collection.customer
+    space = member.json_data["space"]
+    return s3_client.put_images(images, member.id, composite_id, customer, space)
 
 
 def __build_dlcs_requests(member, dlcs_uris):
