@@ -62,7 +62,6 @@ class AbstractAPIView(APIView):
 
 class QueryCollectionAPIView(AbstractAPIView):
     def get(self, request, *args, **kwargs):
-
         try:
             collection = Collection.objects.get(id=kwargs["collection_id"])
         except Collection.DoesNotExist:
@@ -99,7 +98,6 @@ class QueryMemberAPIView(AbstractAPIView):
 
 class CollectionAPIView(AbstractAPIView):
     def post(self, request, *args, **kwargs):
-
         self._validate_credentials(kwargs["customer"], request.headers)
 
         serializer = CollectionSerializer(

@@ -32,5 +32,7 @@ class DLCS:
         if response.status_code == requests.codes.created:
             return response.json()
         else:
-            logger.info(f"ingest failed with status {response.status_code}: {response.text}")
+            logger.info(
+                f"ingest failed with status {response.status_code}: {response.text}"
+            )
             response.raise_for_status()
