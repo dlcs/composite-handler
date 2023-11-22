@@ -29,7 +29,9 @@ class S3Client:
     def put_images(self, images, submission_id, composite_id, customer_id, space_id):
         s3_uris = []
 
-        key_prefix = self.__get_key_prefix(submission_id, composite_id, customer_id, space_id)
+        key_prefix = self.__get_key_prefix(
+            submission_id, composite_id, customer_id, space_id
+        )
 
         with tqdm.tqdm(
             desc=f"[{submission_id}] Upload images to S3",
