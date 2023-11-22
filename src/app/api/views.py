@@ -28,7 +28,8 @@ class AbstractAPIView(APIView):
     def _validate_credentials(self, customer, headers):
         if not customer or "Authorization" not in headers:
             raise PermissionDenied
-        self._dlcs.test_credentials(customer, headers["Authorization"])
+        if not self._dlcs.test_credentials(customer, headers["Authorization"]):
+            raise PermissionDenied
 
     def _build_collection_response_body(self, collection):
         return {
@@ -61,7 +62,6 @@ class AbstractAPIView(APIView):
 
 class QueryCollectionAPIView(AbstractAPIView):
     def get(self, request, *args, **kwargs):
-
         try:
             collection = Collection.objects.get(id=kwargs["collection_id"])
         except Collection.DoesNotExist:
@@ -98,7 +98,6 @@ class QueryMemberAPIView(AbstractAPIView):
 
 class CollectionAPIView(AbstractAPIView):
     def post(self, request, *args, **kwargs):
-
         self._validate_credentials(kwargs["customer"], request.headers)
 
         serializer = CollectionSerializer(

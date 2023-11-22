@@ -15,8 +15,11 @@ class DLCS:
             f"{self._api_root}customers/{customer}",
             headers={"Content-Type": "application/json", "Authorization": auth},
         )
+
         if response.status_code == requests.codes.ok:
-            return response.json()
+            return True
+        elif response.status_code in [401, 403]:
+            return False
         else:
             response.raise_for_status()
 
@@ -29,5 +32,7 @@ class DLCS:
         if response.status_code == requests.codes.created:
             return response.json()
         else:
-            logger.info(f"ingest failed with status {response.status_code}: {response.text}")
+            logger.info(
+                f"ingest failed with status {response.status_code}: {response.text}"
+            )
             response.raise_for_status()

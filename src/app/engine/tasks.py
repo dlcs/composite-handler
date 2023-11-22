@@ -26,6 +26,7 @@ def cleanup_scratch(folder_path):
 
 def process_member(args):
     member = Member.objects.get(id=args["id"])
+    folder_path = None
     try:
         folder_path = __fetch_origin(member, member.json_data["origin"])
         images = __rasterize_composite(member, folder_path)
@@ -36,11 +37,12 @@ def process_member(args):
     except Exception as error:
         __process_error(member, error)
     finally:
-        async_task(
-            "app.engine.tasks.cleanup_scratch",
-            folder_path,
-            task_name="Scavenger: [{0}]".format(args["id"]),
-        )
+        if folder_path:
+            async_task(
+                "app.engine.tasks.cleanup_scratch",
+                folder_path,
+                task_name="Scavenger: [{0}]".format(args["id"]),
+            )
 
 
 def __fetch_origin(member, origin_uri):
