@@ -24,7 +24,7 @@ Additionally, the project uses:
 The project ships with a [`docker-compose.yml`](docker-compose.yml) that can be used to get a local version of the component running:
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 > Note that for the Composite Handler to be able to interact with the target S3 bucket, the Docker Compose assumes that the `AWS_PROFILE` environment variable has been set and a valid AWS session is available.
@@ -58,7 +58,7 @@ The administrator user can be used to browse the database and manage the queue (
 There are 3 possible entrypoints to make the above easier:
 
 * `entrypoint.sh` - this will wait for Postgres to be available and run `manage.py migrate` and `manage.py createcachetable` if `MIGRATE=True`. It will run `manage.py createsuperuser` is `INIT_SUPERUSER=True` (also needs `DJANGO_SUPERUSER_*` envvars)
-* `entrypoint-api.sh` - this runs above then `python manage.py runserver 0.0.0.0:8000`
+* `entrypoint-api.sh` - this runs above then starts nginx instance fronting gunicorn process
 * `entrypoint-worker.sh` - this runs above then `python manage.py qcluster`
 
 ## Configuration
@@ -88,6 +88,7 @@ The following list of environment variables are supported:
 | `ENGINE_WORKER_MAX_ATTEMPTS`  | `0`                            | Engine       | The number of processing attempts a single task will undergo before it is abandoned. Setting this value to `0` will cause a task to be retried forever.                                                                                                                      |
 | `MIGRATE`                     | None                           | API, Engine  | If "True" will run migrations + createcachetable on startup if entrypoint used.                                                                                                                                                                                              |
 | `INIT_SUPERUSER`              | None                           | API, Engine  | If "True" will attempt to create superuser. Needs standard Django envvars to be set (e.g. `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`) if entrypoint used.                                                                            |
+| `GUNICORN_WORKERS`            | `2`                            | API          | The value of [`--workers`](https://docs.gunicorn.org/en/stable/run.html) arg when running gunicorn                                                                                                                                                                           |
 
 Note that in order to access the S3 bucket, the Composite Handler assumes that valid AWS credentials are available in the environment - this can be in the former of [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html), or in the form of ambient credentials.
 
@@ -96,15 +97,15 @@ Note that in order to access the S3 bucket, the Composite Handler assumes that v
 The project ships with a [`Dockerfile`](./Dockerfile):
 
 ```bash
-docker build -t dlcs/composite-handler:latest .
+docker build -t dlcs/composite-handler:local .
 ```
 
 This will produce a single image that can be used to execute any of the supported Django commands, including running the API and the engine:
 
 ```bash
-docker run dlcs/composite-handler:latest python manage.py migrate # Apply any pending DB schema changes
-docker run dlcs/composite-handler:latest python manage.py createcachetable # Create the cache table (if it doesn't exist)
-docker run dlcs/composite-handler:latest python manage.py runserver 0.0.0.0:8000 # Run the API
-docker run dlcs/composite-handler:latest python manage.py qcluster # Run the engine
-docker run dlcs/composite-handler:latest python manage.py qmonitor # Monitor the workers
+docker run dlcs/composite-handler:local python manage.py migrate # Apply any pending DB schema changes
+docker run dlcs/composite-handler:local python manage.py createcachetable # Create the cache table (if it doesn't exist)
+docker run --env-file .env -it --rm dlcs/composite-handler:local /srv/dlcs/entrypoint-api.sh # Run the API
+docker run --env-file .env -it --rm dlcs/composite-handler:local /srv/dlcs/entrypoint-worker.sh # Run the engine
+docker run dlcs/composite-handler:local python manage.py qmonitor # Monitor the workers
 ```

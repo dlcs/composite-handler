@@ -26,8 +26,12 @@ class S3Client:
         else:
             return f"https://s3.amazonaws.com/{self._bucket_name}"
 
-    def put_images(self, submission_id, images):
+    def put_images(self, images, submission_id, composite_id, customer_id, space_id):
         s3_uris = []
+
+        key_prefix = self.__get_key_prefix(
+            submission_id, composite_id, customer_id, space_id
+        )
 
         with tqdm.tqdm(
             desc=f"[{submission_id}] Upload images to S3",
@@ -39,14 +43,17 @@ class S3Client:
                 # same order as the list of images provided to it. '.map(...)' gives us that,
                 # whilst '.submit(...)' does not.
                 for s3_uri in executor.map(
-                    self.__put_image, repeat(submission_id), images
+                    self.__put_image, repeat(key_prefix), images
                 ):
                     s3_uris.append(s3_uri)
                     progress_bar.update(1)
         return s3_uris
 
-    def __put_image(self, submission_id, image):
-        object_key = f"{self._object_key_prefix}/{submission_id}/{os.path.basename(image.filename)}"
+    def __get_key_prefix(self, submission_id, composite_id, customer, space):
+        return f"{self._object_key_prefix}/{customer}/{space}/{composite_id or submission_id}"
+
+    def __put_image(self, key_prefix, image):
+        object_key = f"{key_prefix}/{os.path.basename(image.filename)}"
         with open(image.filename, "rb") as file:
             self._client.put_object(Bucket=self._bucket_name, Key=object_key, Body=file)
         return f"{self._bucket_base_url}/{object_key}"

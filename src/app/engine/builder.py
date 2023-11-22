@@ -4,7 +4,7 @@ from django.conf import settings
 class MemberBuilder:
     STATIC_FIELDS = {"mediaType": "image/jpeg", "family": "I"}
 
-    STRIP_FIELDS = ["@type", "originFormat", "incrementSeed"]
+    STRIP_FIELDS = ["@type", "originFormat", "incrementSeed", "compositeId"]
 
     FORMAT_FIELDS = [
         "id",
@@ -26,7 +26,8 @@ class MemberBuilder:
     def __build_template(self, original_template):
         template = dict(original_template) | self.STATIC_FIELDS
         for strip_field in self.STRIP_FIELDS:
-            template.pop(strip_field)
+            if strip_field in template:
+                template.pop(strip_field)
         return template
 
     def build_member(self, dlcs_uri):

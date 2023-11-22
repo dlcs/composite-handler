@@ -71,6 +71,9 @@
     },
     "incrementSeed": {
       "type": "integer"
+    },
+    "compositeId": {
+      "type": "string"
     }
   },
   "required": [
