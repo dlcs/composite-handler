@@ -15,8 +15,11 @@ class DLCS:
             f"{self._api_root}customers/{customer}",
             headers={"Content-Type": "application/json", "Authorization": auth},
         )
+
         if response.status_code == requests.codes.ok:
-            return response.json()
+            return True
+        elif response.status_code in [401, 403]:
+            return False
         else:
             response.raise_for_status()
 

@@ -28,7 +28,8 @@ class AbstractAPIView(APIView):
     def _validate_credentials(self, customer, headers):
         if not customer or "Authorization" not in headers:
             raise PermissionDenied
-        self._dlcs.test_credentials(customer, headers["Authorization"])
+        if not self._dlcs.test_credentials(customer, headers["Authorization"]):
+            raise PermissionDenied
 
     def _build_collection_response_body(self, collection):
         return {
