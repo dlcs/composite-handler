@@ -2,9 +2,10 @@ import os
 
 from django.conf import settings
 from pdf2image import convert_from_path
-from PIL import Image 
+from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = 1000000000
+
 
 class PdfRasterizer:
     def __init__(self):
