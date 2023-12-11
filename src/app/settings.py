@@ -170,6 +170,7 @@ PDF_RASTERIZER = {
     "thread_count": env("PDF_RASTERIZER_THREAD_COUNT", cast=int, default=3),
     "format": env("PDF_RASTERIZER_FORMAT", cast=str, default="jpg"),
     "dpi": env("PDF_RASTERIZER_DPI", cast=int, default=500),
+    "fallback_dpi": env("PDF_RASTERIZER_FALLBACK_DPI", cast=int, default=200),
     "max_length": env("PDF_RASTERIZER_MAX_LENGTH", cast=int, default=0),
 }
 
