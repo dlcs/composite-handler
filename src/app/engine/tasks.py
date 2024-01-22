@@ -8,7 +8,6 @@ from app.engine.origins import HttpOrigin
 from app.engine.rasterizers import PdfRasterizer
 from app.engine.s3 import S3Client
 from app.engine.serializers import DLCSBatchSerializer
-from django_q.tasks import async_task
 
 logger = logging.Logger(__name__)
 http_origin = HttpOrigin()
@@ -37,12 +36,7 @@ def process_member(args):
     except Exception as error:
         __process_error(member, error)
     finally:
-        if folder_path:
-            async_task(
-                "app.engine.tasks.cleanup_scratch",
-                folder_path,
-                task_name="Scavenger: [{0}]".format(args["id"]),
-            )
+        cleanup_scratch(folder_path)
 
 
 def __fetch_origin(member, origin_uri):
