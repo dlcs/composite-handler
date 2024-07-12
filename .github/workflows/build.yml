@@ -16,12 +16,12 @@ jobs:
         uses: actions/checkout@v4
 
       - id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - id: pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
 
       - id: docker-setup-buildx
         uses: docker/setup-buildx-action@v3
