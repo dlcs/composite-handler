@@ -91,8 +91,17 @@ The following list of environment variables are supported:
 | `MIGRATE`                     | None                           | API, Engine  | If "True" will run migrations + createcachetable on startup if entrypoint used.                                                                                                                                                                                              |
 | `INIT_SUPERUSER`              | None                           | API, Engine  | If "True" will attempt to create superuser. Needs standard Django envvars to be set (e.g. `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`) if entrypoint used.                                                                            |
 | `GUNICORN_WORKERS`            | `2`                            | API          | The value of [`--workers`](https://docs.gunicorn.org/en/stable/run.html) arg when running gunicorn                                                                                                                                                                           |
+| `SQS_BROKER_QUEUE_NAME`       | None                           | API, Engine  | If set, django-q [SQS broker](https://django-q.readthedocs.io/en/latest/brokers.html#amazon-sqs) will be used. Queue created if doesn't exist. If empty default [Django ORM broker](https://django-q.readthedocs.io/en/latest/brokers.html#django-orm) is used               |
 
 Note that in order to access the S3 bucket, the Composite Handler assumes that valid AWS credentials are available in the environment - this can be in the former of [environment variables](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html), or in the form of ambient credentials.
+
+### Django Q Broker
+
+By default Django Q will use the default [Django ORM](https://django-q.readthedocs.io/en/latest/brokers.html#django-orm) broker.
+
+The [SQS broker](https://django-q.readthedocs.io/en/latest/brokers.html#amazon-sqs) can be configured by specifying the `SQS_BROKER_QUEUE_NAME` environment variable. Default SQS broker behaviour is to create this queue if it is not found.
+
+As with S3, above, Composite Handler assumes that valid AWS credentials are available in the environment.
 
 ## Building
 

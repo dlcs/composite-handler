@@ -156,8 +156,13 @@ Q_CLUSTER = {
     "timeout": env("ENGINE_WORKER_TIMEOUT", cast=int, default=3600),
     "retry": env("ENGINE_WORKER_RETRY", cast=int, default=4500),
     "max_attempts": env("ENGINE_WORKER_MAX_ATTEMPTS", cast=int, default=0),
-    "orm": "default",
 }
+
+if sqs_queue_name := env.str("SQS_BROKER_QUEUE_NAME", default=""):
+    Q_CLUSTER["name"] = sqs_queue_name
+    Q_CLUSTER["sqs"] = {}
+else:
+    Q_CLUSTER["orm"] = "default"
 
 SCRATCH_DIRECTORY = env.path("SCRATCH_DIRECTORY", default="/tmp/scratch")
 
