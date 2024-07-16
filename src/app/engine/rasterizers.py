@@ -33,7 +33,7 @@ class PdfRasterizer:
         pdf_source = os.path.join(subfolder_path, "source.pdf")
         images = self.__rasterize(pdf_source, subfolder_path, dpi=self._dpi)
         images = self.__validate_rasterized_images(images, pdf_source, subfolder_path)
-        return images
+        return [i.filename for i in images]
 
     def __rasterize(
         self, pdf_source, subfolder_path, start_page=None, last_page=None, dpi=None
