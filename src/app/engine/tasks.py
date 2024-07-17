@@ -28,8 +28,8 @@ def process_member(args):
     folder_path = None
     try:
         folder_path = __fetch_origin(member, member.json_data["origin"])
-        images = __rasterize_composite(member, folder_path)
-        s3_urls = __push_images_to_dlcs(member, images)
+        image_paths = __rasterize_composite(member, folder_path)
+        s3_urls = __push_images_to_dlcs(member, image_paths)
         dlcs_requests = __build_dlcs_requests(member, s3_urls)
         dlcs_responses = __initiate_dlcs_ingest(member, dlcs_requests, args["auth"])
         return __build_result(member, dlcs_responses)
@@ -49,12 +49,12 @@ def __rasterize_composite(member, pdf_path):
     return pdf_rasterizer.rasterize_pdf(pdf_path)
 
 
-def __push_images_to_dlcs(member, images):
-    __update_status(member, "PUSHING_TO_DLCS", image_count=len(images))
+def __push_images_to_dlcs(member, image_paths):
+    __update_status(member, "PUSHING_TO_DLCS", image_count=len(image_paths))
     composite_id = member.json_data.get("compositeId")
     customer = member.collection.customer
     space = member.json_data["space"]
-    return s3_client.put_images(images, member.id, composite_id, customer, space)
+    return s3_client.put_images(image_paths, member.id, composite_id, customer, space)
 
 
 def __build_dlcs_requests(member, dlcs_uris):

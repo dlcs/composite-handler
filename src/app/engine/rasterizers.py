@@ -33,7 +33,7 @@ class PdfRasterizer:
         pdf_source = os.path.join(subfolder_path, "source.pdf")
         images = self.__rasterize(pdf_source, subfolder_path, dpi=self._dpi)
         images = self.__validate_rasterized_images(images, pdf_source, subfolder_path)
-        return images
+        return [i.filename for i in images]
 
     def __rasterize(
         self, pdf_source, subfolder_path, start_page=None, last_page=None, dpi=None
@@ -65,6 +65,7 @@ class PdfRasterizer:
             if res == ResizeResult.SINGLE_PIXEL:
                 single_pixel_pages.append(idx + 1)
             idx += 1
+            im.close()
 
         if single_pixel_pages:
             return self.__rescale_single_page_default_dpi(
@@ -89,8 +90,8 @@ class PdfRasterizer:
             logger.info(
                 f"resizing image index {idx} from {w},{h} to {scale_w},{scale_h}"
             )
-            resized = im.resize((scale_w, scale_h), resample=Image.LANCZOS)
-            resized.save(filename)
+            with im.resize((scale_w, scale_h), resample=Image.LANCZOS) as resized:
+                resized.save(filename)
             return ResizeResult.RESIZED
 
         return ResizeResult.NOOP
