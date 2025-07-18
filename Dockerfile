@@ -13,7 +13,8 @@ RUN apt-get update && apt-get --yes install apt-utils && apt-get --yes upgrade \
     && apt-get --yes install poppler-data poppler-utils \
     && apt-get --yes autoremove && apt-get --yes autoclean && apt-get --yes clean \
     && useradd --create-home --home-dir /srv/dlcs --shell /bin/bash --uid 1000 dlcs \
-    && python -m pip install --upgrade pip
+    && python -m pip install --upgrade pip \
+    && python -m pip install --upgrade setuptools
 
 # Copy nginx config and create appropriate folders
 COPY --chown=dlcs:dlcs ./nginx.conf /etc/nginx/nginx.conf
