@@ -24,6 +24,7 @@ class PdfRasterizer:
         self._fmt = settings.PDF_RASTERIZER["format"]
         self._thread_count = settings.PDF_RASTERIZER["thread_count"]
         self._max_length = settings.PDF_RASTERIZER["max_length"]
+        self._use_cropbox = settings.PDF_RASTERIZER["use_cropbox"]
 
     def rasterize_pdf(self, subfolder_path):
         # Typically, pdf2image will write generated images to a temporary path, after
@@ -51,6 +52,7 @@ class PdfRasterizer:
             thread_count=self._thread_count,
             output_file=output_file,
             output_folder=subfolder_path,
+            use_cropbox=self._use_cropbox,
         )
 
     def __validate_rasterized_images(self, images, pdf_source, subfolder_path):
@@ -90,6 +92,7 @@ class PdfRasterizer:
             logger.info(
                 f"resizing image index {idx} from {w},{h} to {scale_w},{scale_h}"
             )
+
             with im.resize((scale_w, scale_h), resample=Image.LANCZOS) as resized:
                 resized.save(filename)
             return ResizeResult.RESIZED

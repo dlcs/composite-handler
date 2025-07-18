@@ -177,6 +177,7 @@ PDF_RASTERIZER = {
     "dpi": env("PDF_RASTERIZER_DPI", cast=int, default=500),
     "fallback_dpi": env("PDF_RASTERIZER_FALLBACK_DPI", cast=int, default=200),
     "max_length": env("PDF_RASTERIZER_MAX_LENGTH", cast=int, default=0),
+    "use_cropbox": env("PDF_RASTERIZER_USE_CROPBOX", cast=bool, default=False),
 }
 
 ORIGIN_CONFIG = {"chunk_size": env("ORIGIN_CHUNK_SIZE", cast=int, default=8192)}
