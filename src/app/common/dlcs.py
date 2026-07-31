@@ -23,9 +23,10 @@ class DLCS:
         else:
             response.raise_for_status()
 
-    def ingest(self, customer, json, auth):
+    def ingest(self, customer, json, auth, priority=False):
+        endpoint = "queue/priority" if priority else "queue"
         response = requests.post(
-            f"{self._api_root}customers/{customer}/queue",
+            f"{self._api_root}customers/{customer}/{endpoint}",
             headers={"Content-Type": "application/json", "Authorization": auth},
             json=json,
         )

@@ -166,6 +166,20 @@ if sqs_queue_name := env.str("SQS_BROKER_QUEUE_NAME", default=""):
 else:
     Q_CLUSTER["orm"] = "default"
 
+# When set, priority submissions are routed to a dedicated cluster of this
+# name (which, when the SQS broker is in use, must match the name of a real
+# SQS queue). A worker for it is started with `Q_CLUSTER_NAME=<name> python
+# manage.py qcluster`. When unset, priority submissions fall back to the
+# standard queue.
+PRIORITY_QUEUE_NAME = env.str("PRIORITY_QUEUE_NAME", default="")
+
+if PRIORITY_QUEUE_NAME:
+    Q_CLUSTER["ALT_CLUSTERS"] = {
+        PRIORITY_QUEUE_NAME: {
+            "workers": env("PRIORITY_WORKER_COUNT", cast=int, default=1),
+        },
+    }
+
 SCRATCH_DIRECTORY = env.path("SCRATCH_DIRECTORY", default="/tmp/scratch")
 
 WEB_SERVER = {

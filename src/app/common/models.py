@@ -7,6 +7,7 @@ class Collection(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     json_data = models.JSONField()
     customer = models.IntegerField()
+    priority = models.BooleanField(default=False)
     created_date = models.DateTimeField(auto_now_add=True)
     last_updated_date = models.DateTimeField(auto_now=True)
 

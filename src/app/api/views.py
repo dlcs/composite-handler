@@ -34,6 +34,7 @@ class AbstractAPIView(APIView):
     def _build_collection_response_body(self, collection):
         return {
             "id": f"{self._scheme}://{self._hostname}/collections/{collection.id}",
+            "priority": collection.priority,
             "members": [
                 self._build_member_response_body(member)
                 for member in Member.objects.filter(collection=collection)
@@ -97,11 +98,17 @@ class QueryMemberAPIView(AbstractAPIView):
 
 
 class CollectionAPIView(AbstractAPIView):
+    priority = False
+
     def post(self, request, *args, **kwargs):
         self._validate_credentials(kwargs["customer"], request.headers)
 
         serializer = CollectionSerializer(
-            data={"json_data": request.data, "customer": kwargs["customer"]}
+            data={
+                "json_data": request.data,
+                "customer": kwargs["customer"],
+                "priority": self.priority,
+            }
         )
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -115,12 +122,18 @@ class CollectionAPIView(AbstractAPIView):
         if not all(serializer.is_valid() for serializer in serializers):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        cluster = (
+            settings.PRIORITY_QUEUE_NAME
+            if self.priority and settings.PRIORITY_QUEUE_NAME
+            else None
+        )
         for serializer in serializers:
             member = serializer.save()
             async_task(
                 "app.engine.tasks.process_member",
                 {"id": member.id, "auth": request.headers["Authorization"]},
                 task_name=f"Submission: [{member.id}]",
+                cluster=cluster,
             )
 
         return Response(

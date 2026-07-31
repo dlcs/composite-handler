@@ -1,49 +1,65 @@
-version: "3.9"
-
 services:
   migrate:
     build:
-      dockerfile: ../Dockerfile.CompositeHandler
-      context: ../
+      dockerfile: Dockerfile
+      context: ../..
     command: bash -c "python manage.py migrate && python manage.py createcachetable"
     environment:
+      - DJANGO_SECRET_KEY=integration-test-secret-key
       - DATABASE_URL=postgresql://dlcs:password@postgres:5432/compositedb
+      - CACHE_URL=dbcache://app_cache
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
   load_test_data:
     build:
-      dockerfile: ../Dockerfile.CompositeHandler
-      context: ../
+      dockerfile: Dockerfile
+      context: ../..
     command: bash -c "python manage.py loaddata /srv/dlcs/test_fixtures/dump.json"
     environment:
+      - DJANGO_SECRET_KEY=integration-test-secret-key
       - DATABASE_URL=postgresql://dlcs:password@postgres:5432/compositedb
+      - CACHE_URL=dbcache://app_cache
     volumes:
       - type: bind
         source: ./api/test_fixtures
         target: /srv/dlcs/test_fixtures
     depends_on:
-      - postgres
-      - migrate
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
   api:
     build:
-      dockerfile: ../Dockerfile.CompositeHandler
-      context: ../
+      dockerfile: Dockerfile
+      context: ../..
     command: python manage.py runserver 0.0.0.0:8000
     environment:
+      - DJANGO_SECRET_KEY=integration-test-secret-key
       - DATABASE_URL=postgresql://dlcs:password@postgres:5432/compositedb
+      - CACHE_URL=dbcache://app_cache
       - DLCS_API_ROOT=http://dlcs:8080/
     ports:
       - "8000"
     depends_on:
-      - migrate
-      - postgres
-      - dlcs
-      - load_test_data
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      load_test_data:
+        condition: service_completed_successfully
+      dlcs:
+        condition: service_started
   postgres:
     image: postgres:13.3
     environment:
       - POSTGRES_USER=dlcs
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=compositedb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dlcs -d compositedb"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
   dlcs:
     image: mendhak/http-https-echo:22
