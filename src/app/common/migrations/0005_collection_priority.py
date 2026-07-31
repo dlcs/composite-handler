@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('common', '0004_auto_20220113_1314'),
+        ("common", "0004_auto_20220113_1314"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='collection',
-            name='priority',
+            model_name="collection",
+            name="priority",
             field=models.BooleanField(default=False),
         ),
     ]
