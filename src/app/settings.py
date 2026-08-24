@@ -14,6 +14,8 @@ from pathlib import Path
 
 import environ
 
+from app.engine.origin_rules import compile_rules
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -180,7 +182,10 @@ PDF_RASTERIZER = {
     "use_cropbox": env("PDF_RASTERIZER_USE_CROPBOX", cast=bool, default=False),
 }
 
-ORIGIN_CONFIG = {"chunk_size": env("ORIGIN_CHUNK_SIZE", cast=int, default=8192)}
+ORIGIN_CONFIG = {
+    "chunk_size": env("ORIGIN_CHUNK_SIZE", cast=int, default=8192),
+    "http_rules": compile_rules(env.json("ORIGIN_HTTP_RULES", default={})),
+}
 
 DLCS = {
     "api_root": env.url("DLCS_API_ROOT", default="https://api.dlcs.digirati.io/"),

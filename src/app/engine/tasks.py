@@ -41,7 +41,7 @@ def process_member(args):
 
 def __fetch_origin(member, origin_uri):
     __update_status(member, "FETCHING_ORIGIN")
-    return http_origin.fetch(member.id, origin_uri)
+    return http_origin.fetch(member.id, origin_uri, member.collection.customer)
 
 
 def __rasterize_composite(member, pdf_path):
