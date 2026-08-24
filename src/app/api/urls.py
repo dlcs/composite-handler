@@ -8,4 +8,8 @@ urlpatterns = [
         QueryMemberAPIView.as_view(),
     ),
     path("customers/<int:customer>/queue", CollectionAPIView.as_view()),
+    path(
+        "customers/<int:customer>/queue/priority",
+        CollectionAPIView.as_view(priority=True),
+    ),
 ]

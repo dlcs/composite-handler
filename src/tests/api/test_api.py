@@ -110,6 +110,7 @@ def test_collection_api_view(http_service):
 
     act_vals = r.json()
     assert act_vals["id"]
+    assert act_vals["priority"] is False
 
     act_members = act_vals["members"]
     assert len(act_members) == 1
@@ -118,6 +119,24 @@ def test_collection_api_view(http_service):
         assert act_member["status"] == "PENDING"
         assert "created" in act_member
         assert "last_updated" in act_member
+
+
+def test_collection_api_view_priority(http_service):
+    r = requests.post(
+        f"{http_service}/customers/123/queue/priority",
+        headers=test_headers,
+        json=test_collection,
+    )
+    assert r.status_code == 202
+
+    act_vals = r.json()
+    assert act_vals["id"]
+    assert act_vals["priority"] is True
+
+    act_members = act_vals["members"]
+    assert len(act_members) == 1
+    for act_member in act_members:
+        assert act_member["status"] == "PENDING"
 
 
 def test_collection_query(http_service):

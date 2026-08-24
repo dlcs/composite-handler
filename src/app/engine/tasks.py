@@ -69,7 +69,12 @@ def __initiate_dlcs_ingest(member, dlcs_requests, auth):
     dlcs_responses = []
     for dlcs_request in dlcs_requests:
         dlcs_responses.append(
-            dlcs.ingest(member.collection.customer, dlcs_request, auth)
+            dlcs.ingest(
+                member.collection.customer,
+                dlcs_request,
+                auth,
+                priority=member.collection.priority,
+            )
         )
     return dlcs_responses
 

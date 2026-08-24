@@ -7,7 +7,7 @@ The DLCS Composite Handler is an implementation of [DLCS RFC011](https://github.
 The component is written in Python and utilises Django with the following extensions:
 
 - [Django REST Framework](https://github.com/encode/django-rest-framework/tree/master)
-- [Django Q](https://github.com/Koed00/django-q)
+- [Django Q2](https://github.com/django-q2/django-q2)
 - [django-environ](https://github.com/joke2k/django-environ)
 - [django-health-check](https://github.com/KristianOellegaard/django-health-check)
 
@@ -93,7 +93,9 @@ The following list of environment variables are supported:
 | `MIGRATE`                     | None                           | API, Engine  | If "True" will run migrations + createcachetable on startup if entrypoint used.                                                                                                                                                                                              |
 | `INIT_SUPERUSER`              | None                           | API, Engine  | If "True" will attempt to create superuser. Needs standard Django envvars to be set (e.g. `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`) if entrypoint used.                                                                            |
 | `GUNICORN_WORKERS`            | `2`                            | API          | The value of [`--workers`](https://docs.gunicorn.org/en/stable/run.html) arg when running gunicorn                                                                                                                                                                           |
-| `SQS_BROKER_QUEUE_NAME`       | None                           | API, Engine  | If set, django-q [SQS broker](https://django-q.readthedocs.io/en/latest/brokers.html#amazon-sqs) will be used. Queue created if doesn't exist. If empty default [Django ORM broker](https://django-q.readthedocs.io/en/latest/brokers.html#django-orm) is used               |
+| `SQS_BROKER_QUEUE_NAME`       | None                           | API, Engine  | If set, django-q [SQS broker](https://django-q2.readthedocs.io/en/master/brokers.html#amazon-sqs) will be used. Queue created if doesn't exist. If empty default [Django ORM broker](https://django-q2.readthedocs.io/en/master/brokers.html#django-orm) is used             |
+| `PRIORITY_QUEUE_NAME`         | None                           | API, Engine  | If set, enables the priority queue: submissions to `/customers/{customer}/queue/priority` are routed to a dedicated queue/cluster of this name. When the SQS broker is in use, this must be the name of a real SQS queue. If empty, priority submissions use the standard queue. |
+| `PRIORITY_WORKER_COUNT`       | `1`                            | Engine       | The number of workers spawned by each engine instance for the priority cluster.                                                                                                                                                                                              |
 
 > [!NOTE]
 > `ORIGIN_HTTP_RULES` is safe to inject verbatim as an environment variable (e.g. from a secret) — no escaping is needed at that level. However:
@@ -106,11 +108,26 @@ Note that in order to access the S3 bucket, the Composite Handler assumes that v
 
 ### Django Q Broker
 
-By default Django Q will use the default [Django ORM](https://django-q.readthedocs.io/en/latest/brokers.html#django-orm) broker.
+By default Django Q will use the default [Django ORM](https://django-q2.readthedocs.io/en/master/brokers.html#django-orm) broker.
 
-The [SQS broker](https://django-q.readthedocs.io/en/latest/brokers.html#amazon-sqs) can be configured by specifying the `SQS_BROKER_QUEUE_NAME` environment variable. Default SQS broker behaviour is to create this queue if it is not found.
+The [SQS broker](https://django-q2.readthedocs.io/en/master/brokers.html#amazon-sqs) can be configured by specifying the `SQS_BROKER_QUEUE_NAME` environment variable. Default SQS broker behaviour is to create this queue if it is not found.
 
 As with S3, above, Composite Handler assumes that valid AWS credentials are available in the environment.
+
+### Priority Queue
+
+Submissions can be expedited by POSTing to `/customers/{customer}/queue/priority` instead of `/customers/{customer}/queue` — same body, same auth, same response. This mirrors the DLCS API's own priority queue. A priority submission:
+
+- is enqueued to a dedicated local queue (named by `PRIORITY_QUEUE_NAME`) with its own worker pool, so it is not blocked by a backlog on the standard queue, and
+- is ingested into DLCS via `/customers/{customer}/queue/priority`, so it also skips any DLCS-side backlog.
+
+Each engine instance runs a second `qcluster` process for the priority queue (see [`entrypoint-worker.sh`](entrypoints/entrypoint-worker.sh)); to run one manually:
+
+```bash
+Q_CLUSTER_NAME=<priority-queue-name> python manage.py qcluster
+```
+
+If `PRIORITY_QUEUE_NAME` is unset, the feature degrades gracefully: priority submissions are accepted and processed via the standard local queue, but are still ingested through the DLCS priority endpoint. See [`priority-queue.md`](priority-queue.md) for the full design.
 
 ## Building
 
