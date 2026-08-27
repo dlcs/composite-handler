@@ -1,12 +1,12 @@
 services:
   postgres:
-    image: postgres:13.3
+    image: postgres:18
     environment:
       - POSTGRES_USER=dlcs
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=compositedb
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/docker
     ports:
       - "5432:5432"
 
