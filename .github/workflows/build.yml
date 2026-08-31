@@ -24,7 +24,7 @@ jobs:
         uses: pre-commit/action@v3.0.1
 
       - id: docker-setup-buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - id: docker-meta
         uses: docker/metadata-action@v5
