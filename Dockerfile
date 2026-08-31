@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.14
 LABEL maintainer="Donald Gray <donald.gray@digirati.com>"
 LABEL org.opencontainers.image.source=https://github.com/dlcs/composite-handler
 
